@@ -1,0 +1,57 @@
+# GitHub Actions CI for trailtriage.
+#
+# This file ships as ci/github-actions-ci.yml because the token used to create this
+# repository did not have the `workflow` OAuth scope. To enable CI:
+#
+#   mkdir -p .github/workflows
+#   git mv ci/github-actions-ci.yml .github/workflows/ci.yml
+#   git commit -m "ci: enable GitHub Actions" && git push
+#
+# Or paste it in the web UI: Actions -> set up a workflow yourself.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -e .
+
+      - name: Run test suite
+        run: pytest -q
+
+      - name: Run the CLI against the bundled sample trail
+        run: |
+          trailtriage examples/cloudtrail-sample.json --format json --output /tmp/report.json
+          python -c "import json; d=json.load(open('/tmp/report.json')); print(d['summary'])"
+
+      - name: Verify the CI gate fails on high severity
+        run: |
+          if trailtriage examples/cloudtrail-sample.json --fail-on high > /dev/null; then
+            echo "expected a non-zero exit for a trail containing high-severity findings"; exit 1
+          fi
+          echo "gate correctly returned non-zero"

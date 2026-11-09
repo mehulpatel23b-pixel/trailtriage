@@ -6,7 +6,6 @@
 
 Single-event signals *plus* time-bounded multi-stage chain correlation. Zero dependencies. No AWS credentials. No network calls.
 
-[![CI](https://github.com/mehulpatel23b-pixel/trailtriage/actions/workflows/ci.yml/badge.svg)](https://github.com/mehulpatel23b-pixel/trailtriage/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](#zero-dependencies)
@@ -285,6 +284,11 @@ because a proven sequence is stronger evidence than a single call.
 | `CHAIN-002` | Defense evasion then collection | 4 | T1562 -> T1530 | Logging or monitoring disabled, then 5+ sensitive reads by the same principal |
 | `CHAIN-003` | Recon then escalation | 3 | T1580 -> T1098 | 25+ discovery calls, then an IAM write |
 | `CHAIN-004` | Root takeover | 4 | T1078.004 -> T1098 | Root activity without MFA, then credential creation |
+
+CI is not enabled yet on the published repo: the token that created it lacked GitHub's `workflow`
+scope. The pipeline is ready in [`ci/github-actions-ci.yml`](ci/github-actions-ci.yml) and runs the
+test suite on Python 3.9-3.12, executes the CLI against the bundled sample, and asserts that the
+`--fail-on high` gate returns non-zero. Move it to `.github/workflows/ci.yml` to switch it on.
 
 ### Grading
 
